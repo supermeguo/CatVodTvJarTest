@@ -35,6 +35,7 @@ public class MainActivity extends BaseActivity {
     private HomeGameListAdapter homeGameListAdapter;
     private HomeTabAdapter homeTabAdapter;
     private List<XshijueHomeListBean.ClassBean> classX;
+    private XshijueHomeListBean xshijueHomeListBean;
 
     @Override
     protected int getLayout() {
@@ -60,8 +61,8 @@ public class MainActivity extends BaseActivity {
                     XpathInstance.getInstance().init(mContext, assetsJson);
                     String homeContent = XpathInstance.getInstance().homeContent(true);
                     String videoContent = XpathInstance.getInstance().homeVideoContent();
-//                    Log.i("dddddd", "homeContent=" + homeContent);
-                    XshijueHomeListBean xshijueHomeListBean = new Gson().fromJson(homeContent, XshijueHomeListBean.class);
+                    Log.i("dddddd", "homeContent=" + homeContent);
+                    xshijueHomeListBean = new Gson().fromJson(homeContent, XshijueHomeListBean.class);
                     if (xshijueHomeListBean != null) {
                         homeListBeanList = xshijueHomeListBean.getList();
                         classX = xshijueHomeListBean.getClassX();
@@ -98,9 +99,12 @@ public class MainActivity extends BaseActivity {
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
                 List data = adapter.getData();
                 XshijueHomeListBean.ClassBean classBean = (XshijueHomeListBean.ClassBean) data.get(position);
+                XshijueHomeListBean.FiltersBean filters = xshijueHomeListBean.getFilters();
+                String toJson = new Gson().toJson(filters);
                 Intent intent = new Intent(mContext, FenleiActivity.class);
-                intent.putExtra("typeId",classBean.getType_id());
-                intent.putExtra("typeName",classBean.getType_name());
+                intent.putExtra("typeId", classBean.getType_id());
+                intent.putExtra("typeName", classBean.getType_name());
+                intent.putExtra("filters", toJson);
                 startActivity(intent);
             }
         });

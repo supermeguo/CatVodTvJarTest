@@ -14,6 +14,7 @@ import com.github.catvod.demo.R;
 import com.github.catvod.demo.adapter.FenleiAdapter;
 import com.github.catvod.demo.adapter.HomeGameListAdapter;
 import com.github.catvod.demo.bean.FenleiBean;
+import com.github.catvod.demo.bean.XshijueHomeListBean;
 import com.github.catvod.demo.utlis.XpathInstance;
 import com.google.gson.Gson;
 
@@ -35,7 +36,7 @@ public class FenleiActivity extends BaseActivity {
             public void run() {
                 HashMap<String, String> filterSelect = new HashMap<>();
 
-                String categoryContent = XpathInstance.getInstance().getXpath().categoryContent(typeId, "1", false, filterSelect);
+                String categoryContent = XpathInstance.getInstance().getXpath().categoryContent(typeId, "1", true, filterSelect);
                 FenleiBean fenleiBean = new Gson().fromJson(categoryContent, FenleiBean.class);
                 listBeans = fenleiBean.getList();
                 runOnUiThread(new Runnable() {
@@ -55,6 +56,9 @@ public class FenleiActivity extends BaseActivity {
         Intent intent = getIntent();
         typeId = intent.getStringExtra("typeId");
         typeName = intent.getStringExtra("typeName");
+        String filters = intent.getStringExtra("filters");
+        XshijueHomeListBean.FiltersBean filtersBean = new Gson().fromJson(filters, XshijueHomeListBean.FiltersBean.class);
+
 
         ((TextView) findViewById(R.id.tvFenleiTitle)).setText(typeName);
         RecyclerView reHomeList = findViewById(R.id.reHomeList);
