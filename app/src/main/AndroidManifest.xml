@@ -10,15 +10,16 @@
         android:allowBackup="true"
         android:icon="@drawable/app_icon"
         android:label="@string/app_name">
-        <activity android:name="com.github.catvod.demo.MainActivity">
+        <activity android:name="com.github.catvod.demo.ui.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".SearchResultActivity" />
-        <activity android:name=".DetailActivity" />
+        <activity android:name=".ui.SearchResultActivity" />
+        <activity android:name=".ui.DetailActivity" />
+        <activity android:name=".ui.FenleiActivity"/>
     </application>
 
 </manifest>

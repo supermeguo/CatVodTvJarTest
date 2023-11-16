@@ -3,9 +3,7 @@ package com.github.catvod.demo.utlis;
 import android.content.Context;
 
 import com.github.catvod.crawler.Spider;
-import com.github.catvod.demo.MainActivity;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class XpathInstance {

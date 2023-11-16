@@ -1,10 +1,14 @@
 package com.github.catvod.demo.bean;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.List;
 
 public class XshijueHomeListBean {
 
     private List<ListBean> list;
+    @SerializedName("class")
+    private List<ClassBean> classX;
 
     public List<ListBean> getList() {
         return list;
@@ -12,6 +16,14 @@ public class XshijueHomeListBean {
 
     public void setList(List<ListBean> list) {
         this.list = list;
+    }
+
+    public List<ClassBean> getClassX() {
+        return classX;
+    }
+
+    public void setClassX(List<ClassBean> classX) {
+        this.classX = classX;
     }
 
     public static class ListBean {
@@ -57,6 +69,32 @@ public class XshijueHomeListBean {
 
         public void setVod_remarks(String vod_remarks) {
             this.vod_remarks = vod_remarks;
+        }
+    }
+
+    public static class ClassBean {
+        /**
+         * type_id : dianying
+         * type_name : 电影
+         */
+
+        private String type_id;
+        private String type_name;
+
+        public String getType_id() {
+            return type_id;
+        }
+
+        public void setType_id(String type_id) {
+            this.type_id = type_id;
+        }
+
+        public String getType_name() {
+            return type_name;
+        }
+
+        public void setType_name(String type_name) {
+            this.type_name = type_name;
         }
     }
 }

@@ -8,6 +8,13 @@
     <include layout="@layout/comment_search" />
 
     <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/reHomeTab"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="8dp" />
+
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/reHomeList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

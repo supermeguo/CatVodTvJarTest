@@ -1,10 +1,10 @@
-package com.github.catvod.demo;
+package com.github.catvod.demo.ui;
 
 import android.content.Intent;
-import android.view.View;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.github.catvod.demo.R;
 import com.github.catvod.demo.adapter.SearchResultAdapter;
 import com.github.catvod.demo.bean.SearchBean;
 import com.google.gson.Gson;

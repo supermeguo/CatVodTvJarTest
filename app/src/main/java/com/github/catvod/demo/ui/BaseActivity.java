@@ -1,4 +1,4 @@
-package com.github.catvod.demo;
+package com.github.catvod.demo.ui;
 
 import android.app.Activity;
 import android.content.Context;

@@ -1,13 +1,12 @@
-package com.github.catvod.demo;
+package com.github.catvod.demo.ui;
 
 import android.content.Intent;
-import android.util.Log;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.github.catvod.demo.R;
 import com.github.catvod.demo.adapter.PlayConfigAdapter;
 import com.github.catvod.demo.adapter.VideoBean;
 import com.github.catvod.demo.bean.DetailBean;
