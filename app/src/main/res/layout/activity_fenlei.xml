@@ -17,7 +17,8 @@
         android:id="@+id/reHomeList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_constraintTop_toBottomOf="@id/tvFenleiTitle"
+        android:layout_marginTop="20dp"
         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        app:layout_constraintTop_toBottomOf="@id/tvFenleiTitle"
         app:spanCount="3" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -15,10 +15,10 @@ public abstract class BaseActivity extends Activity {
         initView();
         initData();
     }
-
+    protected abstract int getLayout();
     protected abstract void initData();
 
     protected abstract void initView();
 
-    protected abstract int getLayout();
+
 }
