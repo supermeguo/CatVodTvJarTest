@@ -9,20 +9,21 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/color_BBFFFFFF"
+        android:paddingBottom="6dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        android:paddingBottom="6dp"
         app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
-            android:id="@+id/tvFenleiTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="@dimen/dp_40"
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/reHomeTab"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
             android:layout_marginLeft="20dp"
-            android:gravity="center"
-            android:textSize="17sp"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginTop="20dp"
+            android:layout_marginRight="8dp"
+            android:orientation="horizontal"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             app:layout_constraintTop_toTopOf="parent" />
 
         <LinearLayout
@@ -33,7 +34,7 @@
             android:orientation="vertical"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvFenleiTitle" />
+            app:layout_constraintTop_toBottomOf="@id/reHomeTab" />
 
         <TextView
             android:id="@+id/confirm"

@@ -18,12 +18,12 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
-
-
+            android:paddingLeft="4dp"
             android:layout_marginRight="6dp"
             android:background="@drawable/bg_search"
             android:hint="输入搜索的电影名称"
-            android:textSize="19sp"
+            android:textSize="14sp"
+            android:paddingVertical="5dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/tvSearchFun"
             app:layout_constraintStart_toStartOf="parent"

@@ -107,13 +107,12 @@ public class MainActivity extends BaseActivity {
         homeTabAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-                XshijueHomeListBean.ClassBean classBean = xshijueHomeListBean.getClassX().get(position);
 
-                String toJson = new Gson().toJson(classBean);
+
+                String toJson = new Gson().toJson(xshijueHomeListBean);
                 Intent intent = new Intent(mContext, FenleiActivity.class);
-                intent.putExtra("typeId", classBean.getType_id());
-                intent.putExtra("typeName", classBean.getType_name());
-                intent.putExtra("classBean", toJson);
+                intent.putExtra("position",position);
+                intent.putExtra("homeData", toJson);
                 startActivity(intent);
             }
         });
