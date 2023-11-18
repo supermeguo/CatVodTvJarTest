@@ -1,6 +1,8 @@
 package com.github.catvod.demo.ui;
 
 import android.content.Intent;
+import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -29,11 +31,13 @@ public class DetailActivity extends BaseActivity {
     private TextView tvDtDec;
     private RecyclerView rePlayFrom;
     private PlayConfigAdapter playConfigAdapter;
+    private TextView tvDtName;
 
     @Override
     protected void initData() {
         Intent intent = getIntent();
         detailContent = intent.getStringExtra("detailContent");
+        Log.i("dddddd", "detailContent=" + detailContent);
         DetailBean detailBean = new Gson().fromJson(detailContent, DetailBean.class);
         List<DetailBean.ListBean> list = detailBean.getList();
         if (list == null || list.size() == 0) {
@@ -41,7 +45,9 @@ public class DetailActivity extends BaseActivity {
         }
         DetailBean.ListBean listBean = list.get(0);
         Picasso.get().load(listBean.getVod_pic()).into(ivDtPic);
-        tvDtLeixing.setText("类型：" + listBean.getVod_name());
+        tvDtName.setText(listBean.getVod_name());
+
+        tvDtLeixing.setText("类型：" + listBean.getType_name());
         tvDtYear.setText("年份：" + listBean.getVod_year());
         tvDtAre.setText("地区：" + listBean.getVod_area());
         tvDtyanyuan.setText("演员：" + listBean.getVod_actor());
@@ -78,6 +84,7 @@ public class DetailActivity extends BaseActivity {
     @Override
     protected void initView() {
         ivDtPic = findViewById(R.id.ivDtPic);
+        tvDtName = findViewById(R.id.tvDtName);
         tvDtLeixing = findViewById(R.id.tvDtLeixing);
         tvDtYear = findViewById(R.id.tvDtYear);
         tvDtAre = findViewById(R.id.tvDtAre);

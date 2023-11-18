@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.github.catvod.crawler.Spider;
 
+import java.util.HashMap;
 import java.util.List;
 
 public class XpathInstance {
@@ -25,7 +26,7 @@ public class XpathInstance {
         this.xpath = xpath;
     }
 
-    public  Spider getXpath() {
+    public Spider getXpath() {
         return xpath;
     }
 
@@ -48,10 +49,14 @@ public class XpathInstance {
     }
 
     public void init(Context mContext, String assetsJson) {
-        xpath.init(mContext,assetsJson);
+        xpath.init(mContext, assetsJson);
     }
 
     public String playerContent(String guozi, String videoId, List<String> objects) {
-        return   xpath.playerContent(guozi,videoId,objects);
+        return xpath.playerContent(guozi, videoId, objects);
+    }
+
+    public String categoryContent(String typeId, boolean isFliter, HashMap<String, String> filterSelect) {
+        return xpath.categoryContent(typeId, "1", isFliter, filterSelect);
     }
 }

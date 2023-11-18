@@ -15,6 +15,7 @@ import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.github.catvod.demo.R;
 import com.github.catvod.demo.adapter.HomeGameListAdapter;
 import com.github.catvod.demo.adapter.HomeTabAdapter;
+import com.github.catvod.demo.bean.SortFilter;
 import com.github.catvod.demo.bean.XshijueHomeListBean;
 import com.github.catvod.demo.utlis.JsonUtils;
 import com.github.catvod.demo.utlis.XpathInstance;
@@ -24,7 +25,6 @@ import com.google.gson.Gson;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class MainActivity extends BaseActivity {
@@ -57,14 +57,24 @@ public class MainActivity extends BaseActivity {
                 public void run() {
 
                     XpathInstance.getInstance().setxpath(jarLoader.getSpider("XPathFilter"));
-                    String assetsJson = JsonUtils.getAssetsJson(MainActivity.this, "xshijue.json");
+                    String assetsJson = JsonUtils.getAssetsJson(MainActivity.this, "qpingguo.json");
                     XpathInstance.getInstance().init(mContext, assetsJson);
                     String homeContent = XpathInstance.getInstance().homeContent(true);
+
                     String videoContent = XpathInstance.getInstance().homeVideoContent();
                     Log.i("dddddd", "homeContent=" + homeContent);
                     xshijueHomeListBean = new Gson().fromJson(homeContent, XshijueHomeListBean.class);
+                    xshijueHomeListBean = JsonUtils.getFilters(xshijueHomeListBean, homeContent);
                     if (xshijueHomeListBean != null) {
                         homeListBeanList = xshijueHomeListBean.getList();
+                        if (homeListBeanList == null || homeListBeanList.size() == 0) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(mContext, "获取首页数据失败", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
                         classX = xshijueHomeListBean.getClassX();
                         runOnUiThread(new Runnable() {
                             @Override
@@ -97,14 +107,13 @@ public class MainActivity extends BaseActivity {
         homeTabAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-                List data = adapter.getData();
-                XshijueHomeListBean.ClassBean classBean = (XshijueHomeListBean.ClassBean) data.get(position);
-                XshijueHomeListBean.FiltersBean filters = xshijueHomeListBean.getFilters();
-                String toJson = new Gson().toJson(filters);
+                XshijueHomeListBean.ClassBean classBean = xshijueHomeListBean.getClassX().get(position);
+
+                String toJson = new Gson().toJson(classBean);
                 Intent intent = new Intent(mContext, FenleiActivity.class);
                 intent.putExtra("typeId", classBean.getType_id());
                 intent.putExtra("typeName", classBean.getType_name());
-                intent.putExtra("filters", toJson);
+                intent.putExtra("classBean", toJson);
                 startActivity(intent);
             }
         });
