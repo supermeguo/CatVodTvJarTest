@@ -1,25 +1,25 @@
 package com.github.catvod.demo.adapter;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
-import com.github.catvod.crawler.Spider;
 import com.github.catvod.demo.R;
 import com.github.catvod.demo.bean.PlayBean;
+import com.github.catvod.demo.inter.MyOnItemClickListener;
 import com.github.catvod.demo.utlis.XpathInstance;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class PlayConfigAdapter extends BaseQuickAdapter<PlayBean, BaseViewHolder> {
+    private MyOnItemClickListener onItemClickListener;
+
     public PlayConfigAdapter() {
         super(R.layout.item_play_config);
     }
@@ -48,7 +48,9 @@ public class PlayConfigAdapter extends BaseQuickAdapter<PlayBean, BaseViewHolder
                         tvPlayFromName.post(new Runnable() {
                             @Override
                             public void run() {
-                                Toast.makeText(mContext, "playerContent=" + playerContent, Toast.LENGTH_SHORT).show();
+                                if (onItemClickListener != null) {
+                                    onItemClickListener.onClickItem(playerContent);
+                                }
                             }
                         });
 
@@ -56,5 +58,9 @@ public class PlayConfigAdapter extends BaseQuickAdapter<PlayBean, BaseViewHolder
                 }).start();
             }
         });
+    }
+
+    public void setOnItemClickListener(MyOnItemClickListener onItemClickListener) {
+        this.onItemClickListener = onItemClickListener;
     }
 }

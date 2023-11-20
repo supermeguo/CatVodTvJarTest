@@ -1,23 +1,50 @@
 package com.github.catvod.demo.ui;
 
+import android.annotation.TargetApi;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.http.SslError;
+import android.os.Build;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.webkit.ConsoleMessage;
+import android.webkit.JsPromptResult;
+import android.webkit.JsResult;
+import android.webkit.SslErrorHandler;
+import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.github.catvod.crawler.Spider;
 import com.github.catvod.demo.R;
 import com.github.catvod.demo.adapter.PlayConfigAdapter;
 import com.github.catvod.demo.adapter.VideoBean;
 import com.github.catvod.demo.bean.DetailBean;
 import com.github.catvod.demo.bean.PlayBean;
+import com.github.catvod.demo.inter.MyOnItemClickListener;
+import com.github.catvod.demo.utlis.DefaultConfig;
+import com.github.catvod.demo.utlis.XpathInstance;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DetailActivity extends BaseActivity {
 
@@ -32,6 +59,14 @@ public class DetailActivity extends BaseActivity {
     private RecyclerView rePlayFrom;
     private PlayConfigAdapter playConfigAdapter;
     private TextView tvDtName;
+    private WebView myWebView;
+    private SysWebClient mSysWebClient;
+
+
+    @Override
+    protected int getLayout() {
+        return R.layout.activity_detail;
+    }
 
     @Override
     protected void initData() {
@@ -94,10 +129,208 @@ public class DetailActivity extends BaseActivity {
         rePlayFrom = findViewById(R.id.rePlayFrom);
         playConfigAdapter = new PlayConfigAdapter();
         rePlayFrom.setAdapter(playConfigAdapter);
+
+        playConfigAdapter.setOnItemClickListener(new MyOnItemClickListener() {
+            @Override
+            public void onClickItem(String playerContent) {
+                if (TextUtils.isEmpty(playerContent)) {
+                    Toast.makeText(mContext, "播放地址为空", Toast.LENGTH_SHORT).show();
+                } else {
+                    initWebview(playerContent);
+                }
+            }
+        });
+
+    }
+
+    private void initWebview(String playerContent) {
+        myWebView = new WebView(mContext);
+        myWebView.setFocusable(false);
+        myWebView.setFocusableInTouchMode(false);
+        myWebView.clearFocus();
+        myWebView.setOverScrollMode(View.OVER_SCROLL_ALWAYS);
+        myWebView.setFocusable(false);
+        myWebView.setFocusableInTouchMode(false);
+        myWebView.clearFocus();
+        myWebView.setOverScrollMode(View.OVER_SCROLL_ALWAYS);
+        /* 添加webView配置 */
+        final WebSettings settings = myWebView.getSettings();
+        settings.setNeedInitialFocus(false);
+        settings.setAllowContentAccess(true);
+        settings.setAllowFileAccess(true);
+        settings.setAllowUniversalAccessFromFileURLs(true);
+        settings.setAllowFileAccessFromFileURLs(true);
+        settings.setDatabaseEnabled(true);
+        settings.setDomStorageEnabled(true);
+        settings.setJavaScriptEnabled(true);
+        settings.setBlockNetworkImage(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            settings.setMediaPlaybackRequiresUserGesture(false);
+        }
+        settings.setUseWideViewPort(true);
+        settings.setDomStorageEnabled(true);
+        settings.setJavaScriptCanOpenWindowsAutomatically(true);
+        settings.setSupportMultipleWindows(false);
+        settings.setLoadWithOverviewMode(true);
+        settings.setBuiltInZoomControls(true);
+        settings.setSupportZoom(false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        }
+        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+        /* 添加webView配置 */
+        //设置编码
+        settings.setDefaultTextEncodingName("utf-8");
+        settings.setUserAgentString(myWebView.getSettings().getUserAgentString());
+        myWebView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+                return false;
+            }
+
+            @Override
+            public boolean onJsAlert(WebView view, String url, String message, JsResult result) {
+                return true;
+            }
+
+            @Override
+            public boolean onJsConfirm(WebView view, String url, String message, JsResult result) {
+                return true;
+            }
+
+            @Override
+            public boolean onJsPrompt(WebView view, String url, String message, String defaultValue, JsPromptResult result) {
+                return true;
+            }
+        });
+        mSysWebClient = new SysWebClient();
+        myWebView.setWebViewClient(mSysWebClient);
+        Toast.makeText(mContext, "正在解析播放地址", Toast.LENGTH_SHORT).show();
+        JsonObject obj = JsonParser.parseString(playerContent).getAsJsonObject();
+        String url = obj.get("url").toString();
+        url = url.substring(1, url.length() - 1);
+        Log.i("dddddd", "url=" + url);
+        myWebView.clearCache(true);
+        myWebView.loadUrl(url);
+    }
+
+    private class SysWebClient extends WebViewClient {
+        @Override
+        public void onPageStarted(WebView view, String url, Bitmap favicon) {
+            super.onPageStarted(view, url, favicon);
+            Log.i("dddddd", "onPageStarted url=" + url);
+        }
+
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+            return false;
+        }
+
+        WebResourceResponse checkIsVideo(String url, HashMap<String, String> headers) {
+            if (url.endsWith("/favicon.ico")) {
+                return new WebResourceResponse("image/png", null, null);
+            }
+            Log.i("dddddd", "checkIsVideo    " + url);
+            if (checkVideoFormat(url)) {
+                Intent intent = new Intent(mContext, PlayActivity.class);
+                intent.putExtra("videourl", url);
+                startActivity(intent);
+                stopLoadWebView(false);
+            }
+
+            return null;
+        }
+
+        @Nullable
+        @Override
+        public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+            WebResourceResponse response = checkIsVideo(url, null);
+            if (response == null)
+                return super.shouldInterceptRequest(view, url);
+            else
+                return response;
+        }
+
+        @Nullable
+        @Override
+        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+        public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+            String url = "";
+            try {
+                url = request.getUrl().toString();
+            } catch (Throwable th) {
+
+            }
+            Log.i("dddddd", "shouldInterceptRequest url=" + url);
+            HashMap<String, String> webHeaders = new HashMap<>();
+            try {
+                Map<String, String> hds = request.getRequestHeaders();
+                for (String k : hds.keySet()) {
+                    if (k.equalsIgnoreCase("user-agent")
+                            || k.equalsIgnoreCase("referer")
+                            || k.equalsIgnoreCase("origin")) {
+                        webHeaders.put(k, " " + hds.get(k));
+                    }
+                }
+            } catch (Throwable th) {
+
+            }
+            WebResourceResponse response = checkIsVideo(url, webHeaders);
+            if (response == null)
+                return super.shouldInterceptRequest(view, request);
+            else
+                return response;
+        }
+
+        @Override
+        public void onLoadResource(WebView webView, String url) {
+            super.onLoadResource(webView, url);
+        }
+    }
+
+    void stopLoadWebView(boolean destroy) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                if (myWebView != null) {
+                    myWebView.stopLoading();
+                    myWebView.loadUrl("about:blank");
+                    if (destroy) {
+                        myWebView.clearCache(true);
+                        myWebView.removeAllViews();
+                        myWebView.destroy();
+                        myWebView = null;
+                    }
+                }
+                if (myWebView != null) {
+                    myWebView.stopLoading();
+                    myWebView.loadUrl("about:blank");
+                    if (destroy) {
+                        myWebView.clearCache(true);
+                        myWebView.removeAllViews();
+                        myWebView.destroy();
+                        myWebView = null;
+                    }
+                }
+            }
+        });
+    }
+
+    boolean checkVideoFormat(String url) {
+        Spider xpath = XpathInstance.getInstance().getXpath();
+        boolean manualVideoCheck = xpath.manualVideoCheck();
+        boolean videoFormat = xpath.isVideoFormat(url);
+        Log.i("dddddd", "checkVideoFormat  manualVideoCheck=" + manualVideoCheck + "    videoFormat=" + videoFormat);
+        if (xpath != null && xpath.manualVideoCheck()) {
+            return xpath.isVideoFormat(url);
+        }
+        return DefaultConfig.isVideoFormat(url);
     }
 
     @Override
-    protected int getLayout() {
-        return R.layout.activity_detail;
+    protected void onDestroy() {
+        super.onDestroy();
+        stopLoadWebView(true);
     }
 }
