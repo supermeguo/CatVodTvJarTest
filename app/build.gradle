@@ -11,6 +11,16 @@ android {
         targetSdkVersion rootProject.targetSdkVersion
         versionCode rootProject.appVersionCode
         versionName rootProject.appVersionName
+        multiDexEnabled true
+
+        splits {
+            abi {
+                enable true
+                reset()
+                include 'armeabi-v7a'
+            }
+        }
+
     }
 
     buildTypes {
@@ -35,4 +45,5 @@ dependencies {
     implementation('com.thoughtworks.xstream:xstream:1.4.15') {
         exclude group: 'xmlpull', module: 'xmlpull'
     }
+    implementation 'cn.jzvd:jiaozivideoplayer:7.7.0'
 }

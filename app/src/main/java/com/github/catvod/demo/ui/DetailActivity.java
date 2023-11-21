@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.http.SslError;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -23,6 +25,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -61,7 +64,9 @@ public class DetailActivity extends BaseActivity {
     private TextView tvDtName;
     private WebView myWebView;
     private SysWebClient mSysWebClient;
-
+    private boolean loadFound = false;
+    private String vodName;
+    private Handler mHandler;
 
     @Override
     protected int getLayout() {
@@ -80,7 +85,8 @@ public class DetailActivity extends BaseActivity {
         }
         DetailBean.ListBean listBean = list.get(0);
         Picasso.get().load(listBean.getVod_pic()).into(ivDtPic);
-        tvDtName.setText(listBean.getVod_name());
+        vodName = listBean.getVod_name();
+        tvDtName.setText(vodName);
 
         tvDtLeixing.setText("类型：" + listBean.getType_name());
         tvDtYear.setText("年份：" + listBean.getVod_year());
@@ -118,6 +124,7 @@ public class DetailActivity extends BaseActivity {
 
     @Override
     protected void initView() {
+        initParseCountime();
         ivDtPic = findViewById(R.id.ivDtPic);
         tvDtName = findViewById(R.id.tvDtName);
         tvDtLeixing = findViewById(R.id.tvDtLeixing);
@@ -141,6 +148,27 @@ public class DetailActivity extends BaseActivity {
             }
         });
 
+    }
+
+    private void initParseCountime() {
+        mHandler = new Handler(new Handler.Callback() {
+            @Override
+            public boolean handleMessage(@NonNull Message msg) {
+                switch (msg.what) {
+                    case 100:
+                        stopParse();
+                        Toast.makeText(mContext, "解析失败", Toast.LENGTH_SHORT).show();
+                        break;
+                }
+                return false;
+            }
+        });
+    }
+
+    void stopParse() {
+        mHandler.removeMessages(100);
+        stopLoadWebView(false);
+        loadFound = false;
     }
 
     private void initWebview(String playerContent) {
@@ -212,6 +240,8 @@ public class DetailActivity extends BaseActivity {
         Log.i("dddddd", "url=" + url);
         myWebView.clearCache(true);
         myWebView.loadUrl(url);
+        mHandler.removeMessages(100);
+        mHandler.sendEmptyMessageDelayed(100, 5 * 1000);
     }
 
     private class SysWebClient extends WebViewClient {
@@ -231,11 +261,17 @@ public class DetailActivity extends BaseActivity {
                 return new WebResourceResponse("image/png", null, null);
             }
             Log.i("dddddd", "checkIsVideo    " + url);
+            if (loadFound) {
+                return null;
+            }
             if (checkVideoFormat(url)) {
+                stopLoadWebView(false);
+                loadFound = true;
+                mHandler.removeMessages(100);
                 Intent intent = new Intent(mContext, PlayActivity.class);
                 intent.putExtra("videourl", url);
+                intent.putExtra("vodName", vodName);
                 startActivity(intent);
-                stopLoadWebView(false);
             }
 
             return null;
@@ -319,9 +355,6 @@ public class DetailActivity extends BaseActivity {
 
     boolean checkVideoFormat(String url) {
         Spider xpath = XpathInstance.getInstance().getXpath();
-        boolean manualVideoCheck = xpath.manualVideoCheck();
-        boolean videoFormat = xpath.isVideoFormat(url);
-        Log.i("dddddd", "checkVideoFormat  manualVideoCheck=" + manualVideoCheck + "    videoFormat=" + videoFormat);
         if (xpath != null && xpath.manualVideoCheck()) {
             return xpath.isVideoFormat(url);
         }
@@ -332,5 +365,12 @@ public class DetailActivity extends BaseActivity {
     protected void onDestroy() {
         super.onDestroy();
         stopLoadWebView(true);
+        mHandler.removeMessages(100);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        loadFound = false;
     }
 }

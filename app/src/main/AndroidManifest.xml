@@ -20,7 +20,10 @@
         <activity android:name=".ui.SearchResultActivity" />
         <activity android:name=".ui.DetailActivity" />
         <activity android:name=".ui.FenleiActivity" />
-        <activity android:name=".ui.PlayActivity" />
+        <activity
+            android:name=".ui.PlayActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>
