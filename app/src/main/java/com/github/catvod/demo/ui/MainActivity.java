@@ -34,7 +34,7 @@ public class MainActivity extends BaseActivity {
     private List<XshijueHomeListBean.ListBean> homeListBeanList;
     private HomeGameListAdapter homeGameListAdapter;
     private HomeTabAdapter homeTabAdapter;
-    private List<XshijueHomeListBean.ClassBean> classX;
+    private List<XshijueHomeListBean.ClassBean> classX = new ArrayList<>();
     private XshijueHomeListBean xshijueHomeListBean;
 
     @Override
@@ -75,7 +75,11 @@ public class MainActivity extends BaseActivity {
                                 }
                             });
                         }
-                        classX = xshijueHomeListBean.getClassX();
+                        classX.addAll(xshijueHomeListBean.getClassX());
+                        XshijueHomeListBean.ClassBean classBean = new XshijueHomeListBean.ClassBean();
+                        classBean.setType_name("首页");
+                        classBean.setType_id("-1");
+                        classX.add(0, classBean);
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -107,11 +111,12 @@ public class MainActivity extends BaseActivity {
         homeTabAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-
-
+                if (position == 0) {
+                    return;
+                }
                 String toJson = new Gson().toJson(xshijueHomeListBean);
                 Intent intent = new Intent(mContext, FenleiActivity.class);
-                intent.putExtra("position",position);
+                intent.putExtra("position", position - 1);
                 intent.putExtra("homeData", toJson);
                 startActivity(intent);
             }
