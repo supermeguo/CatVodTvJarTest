@@ -1,5 +1,7 @@
 package com.github.catvod.demo.ui;
 
+import static cn.jzvd.Jzvd.SCREEN_FULLSCREEN;
+
 import android.annotation.TargetApi;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -37,7 +39,9 @@ import com.github.catvod.demo.adapter.VideoBean;
 import com.github.catvod.demo.bean.DetailBean;
 import com.github.catvod.demo.bean.PlayBean;
 import com.github.catvod.demo.inter.MyOnItemClickListener;
+import com.github.catvod.demo.play.MyJzvdStd;
 import com.github.catvod.demo.utlis.DefaultConfig;
+import com.github.catvod.demo.utlis.ScreenRotateUtils;
 import com.github.catvod.demo.utlis.XpathInstance;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -50,10 +54,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class DetailActivity extends BaseActivity {
+import cn.jzvd.Jzvd;
+import cn.jzvd.JzvdStd;
+
+public class DetailActivity extends BaseActivity implements ScreenRotateUtils.OrientationChangeListener {
 
     private String detailContent;
-    private ImageView ivDtPic;
     private TextView tvDtLeixing;
     private TextView tvDtYear;
     private TextView tvDtAre;
@@ -68,6 +74,10 @@ public class DetailActivity extends BaseActivity {
     private boolean loadFound = false;
     private String vodName;
     private Handler mHandler;
+    private MyJzvdStd mJzvdStd;
+    private List<VideoBean> playLists = new ArrayList<>();
+    private ImageView ivVideoBg;
+    private int currentPosition = 0;
 
     @Override
     protected int getLayout() {
@@ -85,7 +95,7 @@ public class DetailActivity extends BaseActivity {
             return;
         }
         DetailBean.ListBean listBean = list.get(0);
-        Picasso.get().load(listBean.getVod_pic()).into(ivDtPic);
+
         vodName = listBean.getVod_name();
         tvDtName.setText(vodName);
 
@@ -95,6 +105,7 @@ public class DetailActivity extends BaseActivity {
         tvDtyanyuan.setText("演员：" + listBean.getVod_actor());
         tvDtDaoyan.setText("导演：" + listBean.getVod_director());
         tvDtDec.setText("剧情介绍：" + listBean.getVod_content());
+        Picasso.get().load(listBean.getVod_pic()).into(ivVideoBg);
         String vodPlayFrom = listBean.getVod_play_from();
         String[] fromList = vodPlayFrom.split("\\$\\$\\$");
         ArrayList<PlayBean> fromListData = new ArrayList<>();
@@ -126,7 +137,6 @@ public class DetailActivity extends BaseActivity {
     @Override
     protected void initView() {
         initParseCountime();
-        ivDtPic = findViewById(R.id.ivDtPic);
         tvDtName = findViewById(R.id.tvDtName);
         tvDtLeixing = findViewById(R.id.tvDtLeixing);
         tvDtYear = findViewById(R.id.tvDtYear);
@@ -135,20 +145,63 @@ public class DetailActivity extends BaseActivity {
         tvDtDaoyan = findViewById(R.id.tvDtDaoyan);
         tvDtDec = findViewById(R.id.tvDtDec);
         rePlayFrom = findViewById(R.id.rePlayFrom);
+        ivVideoBg = findViewById(R.id.ivVideoBg);
         playConfigAdapter = new PlayConfigAdapter();
         rePlayFrom.setAdapter(playConfigAdapter);
-
+        initVideo();
         playConfigAdapter.setOnItemClickListener(new MyOnItemClickListener() {
             @Override
-            public void onClickItem(String playerContent) {
-                if (TextUtils.isEmpty(playerContent)) {
-                    Toast.makeText(mContext, "播放地址为空", Toast.LENGTH_SHORT).show();
-                } else {
-                    initWebview(playerContent);
-                }
+            public void onClickItem(List<VideoBean> data, int position) {
+                playLists.clear();
+                playLists.addAll(data);
+                currentPosition = position;
+                VideoBean videoBean = playLists.get(currentPosition);
+                getPlayUrl(videoBean);
             }
         });
 
+    }
+
+    private void getPlayUrl(VideoBean videoBean) {
+        String playerContent = XpathInstance.getInstance().playerContent("guozi", videoBean.getVideoId(), new ArrayList<>());
+        initWebview(playerContent);
+    }
+
+    private void initVideo() {
+        mJzvdStd = findViewById(R.id.jz_video);
+        mJzvdStd.hideProgress();
+        mJzvdStd.setJzVideoListener(new MyJzvdStd.JzVideoListener() {
+            @Override
+            public void nextClick() {
+                currentPosition++;
+                if (currentPosition >= playLists.size()) {
+                    Toast.makeText(mContext, "已经是最后一集", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                VideoBean videoBean = playLists.get(currentPosition);
+                getPlayUrl(videoBean);
+            }
+
+            @Override
+            public void backClick() {
+                mJzvdStd.gotoNormalScreen();
+            }
+
+            @Override
+            public void throwingScreenClick() {
+
+            }
+
+            @Override
+            public void selectPartsClick() {
+
+            }
+
+            @Override
+            public void speedClick() {
+
+            }
+        });
     }
 
     private void initParseCountime() {
@@ -289,12 +342,22 @@ public class DetailActivity extends BaseActivity {
                 stopLoadWebView(false);
                 loadFound = true;
                 mHandler.removeMessages(100);
-                Intent intent = new Intent(mContext, PlayActivity.class);
-                intent.putExtra("videourl", url);
-                intent.putExtra("vodName", vodName);
-                startActivity(intent);
-            }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (playLists.size() > 1) {
+                            mJzvdStd.setUp(url
+                                    , vodName + " 第" + (currentPosition + 1) + "集");
+                        } else {
+                            mJzvdStd.setUp(url
+                                    , vodName);
+                        }
 
+                        mJzvdStd.startVideoAfterPreloading();
+                        ivVideoBg.setVisibility(View.GONE);
+                    }
+                });
+            }
             return null;
         }
 
@@ -387,11 +450,60 @@ public class DetailActivity extends BaseActivity {
         super.onDestroy();
         stopLoadWebView(true);
         mHandler.removeMessages(100);
+        ScreenRotateUtils.getInstance(this.getApplicationContext()).setOrientationChangeListener(null);
+    }
+
+
+    @Override
+    public void orientationChange(int orientation) {
+        if (orientation >= 45 && orientation <= 315 && mJzvdStd.screen == Jzvd.SCREEN_NORMAL) {
+            changeScreenFullLandscape(ScreenRotateUtils.orientationDirection);
+        } else if (((orientation >= 0 && orientation < 45) || orientation > 315) && mJzvdStd.screen == SCREEN_FULLSCREEN) {
+            changeScrenNormal();
+        }
+    }
+
+    /**
+     * 竖屏并退出全屏
+     */
+    private void changeScrenNormal() {
+        if (mJzvdStd != null && mJzvdStd.screen == SCREEN_FULLSCREEN) {
+            mJzvdStd.autoQuitFullscreen();
+        }
+    }
+
+    /**
+     * 横屏
+     */
+    private void changeScreenFullLandscape(float x) {
+        //从竖屏状态进入横屏
+        if (mJzvdStd != null && mJzvdStd.screen != SCREEN_FULLSCREEN) {
+            if ((System.currentTimeMillis() - Jzvd.lastAutoFullscreenTime) > 2000) {
+                mJzvdStd.autoFullscreen(x);
+                Jzvd.lastAutoFullscreenTime = System.currentTimeMillis();
+            }
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        ScreenRotateUtils.getInstance(this).stop();
+        Jzvd.releaseAllVideos();
         loadFound = false;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+//        ScreenRotateUtils.getInstance(this).start(this);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (JzvdStd.backPress()) {
+            return;
+        }
+        super.onBackPressed();
     }
 }

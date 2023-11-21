@@ -18,13 +18,13 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.SearchResultActivity" />
-        <activity android:name=".ui.DetailActivity" />
+
         <activity android:name=".ui.FenleiActivity" />
         <activity
-            android:name=".ui.PlayActivity"
+            android:name=".ui.DetailActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
     </application>
 
 </manifest>

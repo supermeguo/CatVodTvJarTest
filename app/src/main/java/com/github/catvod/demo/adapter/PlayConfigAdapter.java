@@ -38,24 +38,10 @@ public class PlayConfigAdapter extends BaseQuickAdapter<PlayBean, BaseViewHolder
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
                 List<VideoBean> data = adapter.getData();
-                VideoBean videoBean = data.get(position);
-                String videoId = videoBean.getVideoId();
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
 
-                        String playerContent = XpathInstance.getInstance().playerContent("guozi", videoId, new ArrayList<>());
-                        tvPlayFromName.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (onItemClickListener != null) {
-                                    onItemClickListener.onClickItem(playerContent);
-                                }
-                            }
-                        });
-
-                    }
-                }).start();
+                if (onItemClickListener != null) {
+                    onItemClickListener.onClickItem(data, position);
+                }
             }
         });
     }

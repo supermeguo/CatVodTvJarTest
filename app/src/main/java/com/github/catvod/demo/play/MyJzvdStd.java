@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
@@ -324,8 +325,7 @@ public class MyJzvdStd extends JzvdStd {
             case R.id.fullscreen:
                 if (state == STATE_AUTO_COMPLETE) return;
                 if (screen == SCREEN_FULLSCREEN) {
-                    //quit fullscreen
-                    backPress();
+                    gotoNormalScreen();
                 } else {
                     gotoFullscreen();
                 }
@@ -336,6 +336,32 @@ public class MyJzvdStd extends JzvdStd {
                 }
                 break;
         }
+    }
+
+    @Override
+    public void gotoFullscreen() {
+        gotoFullscreenTime = System.currentTimeMillis();
+        ViewGroup vg = (ViewGroup) getParent();
+        jzvdContext = vg.getContext();
+        blockLayoutParams = getLayoutParams();
+        blockIndex = vg.indexOfChild(this);
+        blockWidth = getWidth();
+        blockHeight = getHeight();
+
+        vg.removeView(this);
+        cloneAJzvd(vg);
+        CONTAINER_LIST.add(vg);
+        vg = (ViewGroup) (JZUtils.scanForActivity(jzvdContext)).getWindow().getDecorView();
+
+        ViewGroup.LayoutParams fullLayout = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        vg.addView(this, fullLayout);
+
+        setScreenFullscreen();
+        JZUtils.hideStatusBar(jzvdContext);
+        JZUtils.setRequestedOrientation(jzvdContext, FULLSCREEN_ORIENTATION);
+        JZUtils.hideSystemUI(jzvdContext);//华为手机和有虚拟键的手机全屏时可隐藏虚拟键 issue:1326
+
     }
 
     @Override
@@ -388,7 +414,7 @@ public class MyJzvdStd extends JzvdStd {
                     float deltaX = x - mDownX;
                     float deltaY = y - mDownY;
                     if (!isLock) {
-                        touchActionMove(x,y);
+                        touchActionMove(x, y);
 //                        moveChange(event);
                     }
                     if (mChangePosition) {
@@ -540,7 +566,7 @@ public class MyJzvdStd extends JzvdStd {
             startButton.setVisibility(VISIBLE);
             startButton.setImageResource(R.mipmap.ag_btn_movie_suspend);
             start_bottom.setImageResource(R.mipmap.ag_btn_movie_stop_bottom);
-            if (playAndPauseView.getAnimationType()!=2){
+            if (playAndPauseView.getAnimationType() != 2) {
                 playAndPauseView.pause();
             }
             fastForward.setVisibility(VISIBLE);
@@ -565,7 +591,7 @@ public class MyJzvdStd extends JzvdStd {
         } else {
             startButton.setImageResource(R.mipmap.ag_btn_movie_play);
             start_bottom.setImageResource(R.mipmap.ag_btn_movie_play_bottom);
-            if (playAndPauseView.getAnimationType()!=1){
+            if (playAndPauseView.getAnimationType() != 1) {
                 playAndPauseView.play();
             }
             replayTextView.setVisibility(GONE);
@@ -608,10 +634,11 @@ public class MyJzvdStd extends JzvdStd {
     @Override
     public void setScreenFullscreen() {
         super.setScreenFullscreen();
-        next_bottom.setVisibility(View.VISIBLE);
+        screen = SCREEN_FULLSCREEN;
+//        next_bottom.setVisibility(View.VISIBLE);
         tvSpeed.setVisibility(View.VISIBLE);
-        tvSelectPart.setVisibility(View.VISIBLE);
-        fullscreenButton.setVisibility(View.GONE);
+//        tvSelectPart.setVisibility(View.VISIBLE);
+//        fullscreenButton.setVisibility(View.GONE);
         lock.setVisibility(View.VISIBLE);
         changeUiToPlayingShow();
         startDismissControlViewTimer();

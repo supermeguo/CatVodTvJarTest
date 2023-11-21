@@ -140,15 +140,6 @@
                 android:visibility="gone" />
         </LinearLayout>
 
-        <ProgressBar
-            android:id="@+id/bottom_progress"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="1.5dp"
-            android:layout_alignParentBottom="true"
-            android:max="100"
-            android:progressDrawable="@drawable/player_ag_bottom_progress" />
-
         <ImageView
             android:id="@+id/back_tiny"
             android:layout_width="24dp"
