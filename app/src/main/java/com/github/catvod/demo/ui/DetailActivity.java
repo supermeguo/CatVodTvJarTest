@@ -16,6 +16,7 @@ import android.webkit.JsPromptResult;
 import android.webkit.JsResult;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
@@ -239,16 +240,42 @@ public class DetailActivity extends BaseActivity {
         url = url.substring(1, url.length() - 1);
         Log.i("dddddd", "url=" + url);
         myWebView.clearCache(true);
-        myWebView.loadUrl(url);
         mHandler.removeMessages(100);
-        mHandler.sendEmptyMessageDelayed(100, 5 * 1000);
+        stopParse();
+
+        myWebView.loadUrl(url);
+        mHandler.sendEmptyMessageDelayed(100, 20 * 1000);
     }
 
     private class SysWebClient extends WebViewClient {
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
             super.onPageStarted(view, url, favicon);
+            if (url.contains("about:blank")) {
+                mHandler.removeMessages(100);
+            }
             Log.i("dddddd", "onPageStarted url=" + url);
+        }
+
+        @Override
+        public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
+            super.onReceivedHttpError(view, request, errorResponse);
+            Log.i("dddddd", "onReceivedHttpError errorResponse=" + errorResponse.toString());
+            stopParse();
+        }
+
+        @Override
+        public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+            super.onReceivedError(view, request, error);
+            Log.i("dddddd", "onReceivedError error=" + error.toString());
+            stopParse();
+        }
+
+        @Override
+        public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
+            super.onReceivedSslError(view, handler, error);
+            Log.i("dddddd", "onReceivedSslError error=" + error.toString());
+            stopParse();
         }
 
         @Override
@@ -331,7 +358,7 @@ public class DetailActivity extends BaseActivity {
 
                 if (myWebView != null) {
                     myWebView.stopLoading();
-                    myWebView.loadUrl("about:blank");
+//                    myWebView.loadUrl("about:blank");
                     if (destroy) {
                         myWebView.clearCache(true);
                         myWebView.removeAllViews();
@@ -341,7 +368,7 @@ public class DetailActivity extends BaseActivity {
                 }
                 if (myWebView != null) {
                     myWebView.stopLoading();
-                    myWebView.loadUrl("about:blank");
+//                    myWebView.loadUrl("about:blank");
                     if (destroy) {
                         myWebView.clearCache(true);
                         myWebView.removeAllViews();

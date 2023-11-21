@@ -57,7 +57,7 @@ public class MainActivity extends BaseActivity {
                 public void run() {
 
                     XpathInstance.getInstance().setxpath(jarLoader.getSpider("XPathFilter"));
-                    String assetsJson = JsonUtils.getAssetsJson(MainActivity.this, "qpingguo.json");
+                    String assetsJson = JsonUtils.getAssetsJson(MainActivity.this, "xshijue.json");
                     XpathInstance.getInstance().init(mContext, assetsJson);
                     String homeContent = XpathInstance.getInstance().homeContent(true);
 
