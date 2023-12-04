@@ -88,6 +88,10 @@ public class DetailActivity extends BaseActivity implements ScreenRotateUtils.Or
     protected void initData() {
         Intent intent = getIntent();
         detailContent = intent.getStringExtra("detailContent");
+        if (TextUtils.isEmpty(detailContent)) {
+            Toast.makeText(mContext,"内容为空",Toast.LENGTH_SHORT).show();
+            return;
+        }
         Log.i("dddddd", "detailContent=" + detailContent);
         DetailBean detailBean = new Gson().fromJson(detailContent, DetailBean.class);
         List<DetailBean.ListBean> list = detailBean.getList();
@@ -107,6 +111,10 @@ public class DetailActivity extends BaseActivity implements ScreenRotateUtils.Or
         tvDtDec.setText("剧情介绍：" + listBean.getVod_content());
         Picasso.get().load(listBean.getVod_pic()).into(ivVideoBg);
         String vodPlayFrom = listBean.getVod_play_from();
+        if (TextUtils.isEmpty(vodPlayFrom)) {
+            Toast.makeText(mContext,"播放列表为空",Toast.LENGTH_SHORT).show();
+            return;
+        }
         String[] fromList = vodPlayFrom.split("\\$\\$\\$");
         ArrayList<PlayBean> fromListData = new ArrayList<>();
         for (String s : fromList) {
