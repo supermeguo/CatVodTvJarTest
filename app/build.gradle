@@ -47,4 +47,5 @@ dependencies {
         exclude group: 'xmlpull', module: 'xmlpull'
     }
     implementation 'cn.jzvd:jiaozivideoplayer:7.7.0'
+    implementation "cn.wanghaomiao:JsoupXpath:$jsoupxpath_version"
 }

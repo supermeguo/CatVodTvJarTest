@@ -20,6 +20,7 @@ import com.github.catvod.demo.bean.XshijueHomeListBean;
 import com.github.catvod.demo.utlis.JsonUtils;
 import com.github.catvod.demo.utlis.XpathInstance;
 import com.github.catvod.loader.JarLoader;
+import com.github.catvod.spider.XPathFilter;
 import com.google.gson.Gson;
 
 import java.io.IOException;
@@ -45,18 +46,18 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void initData() {
         try {
-            InputStream is = getAssets().open("custom_spider.jar");
-            int len = is.available();
-            byte[] data = new byte[len];
-            is.read(data);
-            is.close();
-            jarLoader.load(this, data);
+//            InputStream is = getAssets().open("custom_spider.jar");
+//            int len = is.available();
+//            byte[] data = new byte[len];
+//            is.read(data);
+//            is.close();
+//            jarLoader.load(this, data);
 
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-
-                    XpathInstance.getInstance().setxpath(jarLoader.getSpider("XPathFilter"));
+                    XPathFilter xPathFilter = new XPathFilter();
+                    XpathInstance.getInstance().setxpath(xPathFilter);
                     String assetsJson = JsonUtils.getAssetsJson(MainActivity.this, "haitu.json");
                     XpathInstance.getInstance().init(mContext, assetsJson);
                     String homeContent = XpathInstance.getInstance().homeContent(true);
@@ -92,7 +93,8 @@ public class MainActivity extends BaseActivity {
 
                 }
             }).start();
-        } catch (IOException e) {
+        } catch (Exception e) {
+            Log.i("dddddd", "e= " + e.toString());
             e.printStackTrace();
         }
     }
@@ -135,6 +137,16 @@ public class MainActivity extends BaseActivity {
                     @Override
                     public void run() {
                         String detailContent = XpathInstance.getInstance().detailContent(idList);
+                        if (TextUtils.isEmpty(detailContent)) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(mContext, "暂无相关资源", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+
+                            return;
+                        }
                         Intent intent = new Intent(mContext, DetailActivity.class);
                         intent.putExtra("detailContent", detailContent);
                         startActivity(intent);
