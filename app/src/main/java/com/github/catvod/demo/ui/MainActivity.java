@@ -52,7 +52,8 @@ public class MainActivity extends BaseActivity {
 //            is.read(data);
 //            is.close();
 //            jarLoader.load(this, data);
-
+//            https://www.80yy3.com/vplay/151899-1-1.html
+//            https://www.80yy3.com/vplay//vplay/151899-1-2.html
             new Thread(new Runnable() {
                 @Override
                 public void run() {
