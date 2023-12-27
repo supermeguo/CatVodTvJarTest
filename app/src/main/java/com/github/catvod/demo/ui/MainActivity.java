@@ -59,7 +59,7 @@ public class MainActivity extends BaseActivity {
                 public void run() {
                     XPathFilter xPathFilter = new XPathFilter();
                     XpathInstance.getInstance().setxpath(xPathFilter);
-                    String assetsJson = JsonUtils.getAssetsJson(MainActivity.this, "xshijue.json");
+                    String assetsJson = JsonUtils.getAssetsJson(MainActivity.this, "trenjie.json");
                     XpathInstance.getInstance().init(mContext, assetsJson);
                     String homeContent = XpathInstance.getInstance().homeContent(true);
 
@@ -172,6 +172,10 @@ public class MainActivity extends BaseActivity {
                     @Override
                     public void run() {
                         String searchContent = XpathInstance.getInstance().searchContent(inPutName, false);
+                        if (TextUtils.isEmpty(searchContent)) {
+                            Toast.makeText(mContext,"搜索结果为空",Toast.LENGTH_SHORT).show();
+                            return;
+                        }
                         Intent intent = new Intent(mContext, SearchResultActivity.class);
                         intent.putExtra("resultJson", searchContent);
                         startActivity(intent);
