@@ -59,7 +59,7 @@ public class MainActivity extends BaseActivity {
                 public void run() {
                     XPathFilter xPathFilter = new XPathFilter();
                     XpathInstance.getInstance().setxpath(xPathFilter);
-                    String assetsJson = JsonUtils.getAssetsJson(MainActivity.this, "trenjie.json");
+                    String assetsJson = JsonUtils.getAssetsJson(MainActivity.this, "haitu.json");
                     XpathInstance.getInstance().init(mContext, assetsJson);
                     String homeContent = XpathInstance.getInstance().homeContent(true);
 
