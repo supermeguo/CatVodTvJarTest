@@ -194,12 +194,15 @@ public class XPath extends Spider {
 
             String cover = "", title = "", desc = "", category = "", area = "", year = "", remark = "", director = "", actor = "";
 
-            title = vodNode.selOne(rule.getDetailName()).asString().trim();
-            title = rule.getDetailNameR(title);
-
-            cover = vodNode.selOne(rule.getDetailImg()).asString().trim();
-            cover = rule.getDetailImgR(cover);
-            cover = Misc.fixUrl(webUrl, cover);
+            if (vodNode.selOne(rule.getDetailName())!=null) {
+                title = vodNode.selOne(rule.getDetailName()).asString().trim();
+                title = rule.getDetailNameR(title);
+            }
+            if (vodNode.selOne(rule.getDetailImg())!=null) {
+                cover = vodNode.selOne(rule.getDetailImg()).asString().trim();
+                cover = rule.getDetailImgR(cover);
+                cover = Misc.fixUrl(webUrl, cover);
+            }
 
             if (!rule.getDetailCate().isEmpty()) {
                 try {
@@ -278,7 +281,6 @@ public class XPath extends Spider {
                 name = rule.getDetailFromNameR(name);
                 playFrom.add(name);
             }
-
             ArrayList<String> playList = new ArrayList<>();
             List<JXNode> urlListNodes = doc.selN(rule.getDetailUrlNode());
             for (int i = 0; i < urlListNodes.size(); i++) {

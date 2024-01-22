@@ -89,7 +89,7 @@ public class DetailActivity extends BaseActivity implements ScreenRotateUtils.Or
         Intent intent = getIntent();
         detailContent = intent.getStringExtra("detailContent");
         if (TextUtils.isEmpty(detailContent)) {
-            Toast.makeText(mContext,"内容为空",Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, "内容为空", Toast.LENGTH_SHORT).show();
             return;
         }
         Log.i("dddddd", "detailContent=" + detailContent);
@@ -109,10 +109,12 @@ public class DetailActivity extends BaseActivity implements ScreenRotateUtils.Or
         tvDtyanyuan.setText("演员：" + listBean.getVod_actor());
         tvDtDaoyan.setText("导演：" + listBean.getVod_director());
         tvDtDec.setText("剧情介绍：" + listBean.getVod_content());
-        Picasso.get().load(listBean.getVod_pic()).into(ivVideoBg);
+        if (!TextUtils.isEmpty(listBean.getVod_pic())) {
+            Picasso.get().load(listBean.getVod_pic()).into(ivVideoBg);
+        }
         String vodPlayFrom = listBean.getVod_play_from();
         if (TextUtils.isEmpty(vodPlayFrom)) {
-            Toast.makeText(mContext,"播放列表为空",Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, "播放列表为空", Toast.LENGTH_SHORT).show();
             return;
         }
         String[] fromList = vodPlayFrom.split("\\$\\$\\$");
