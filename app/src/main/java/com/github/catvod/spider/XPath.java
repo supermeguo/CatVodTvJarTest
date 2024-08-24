@@ -1,10 +1,26 @@
 package com.github.catvod.spider;
 
+import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.net.http.SslError;
+import android.os.Build;
 import android.text.TextUtils;
+import android.util.Log;
+import android.webkit.SslErrorHandler;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+
+import androidx.annotation.Nullable;
 
 import com.github.catvod.crawler.Spider;
 import com.github.catvod.crawler.SpiderDebug;
+import com.github.catvod.demo.R;
+import com.github.catvod.demo.ui.MyDialog;
 import com.github.catvod.demo.utlis.Misc;
 import com.github.catvod.demo.utlis.okhttp.OkHttpUtil;
 import com.github.catvod.xpath.XPathRule;
@@ -194,11 +210,11 @@ public class XPath extends Spider {
 
             String cover = "", title = "", desc = "", category = "", area = "", year = "", remark = "", director = "", actor = "";
 
-            if (vodNode.selOne(rule.getDetailName())!=null) {
+            if (vodNode.selOne(rule.getDetailName()) != null) {
                 title = vodNode.selOne(rule.getDetailName()).asString().trim();
                 title = rule.getDetailNameR(title);
             }
-            if (vodNode.selOne(rule.getDetailImg())!=null) {
+            if (vodNode.selOne(rule.getDetailImg()) != null) {
                 cover = vodNode.selOne(rule.getDetailImg()).asString().trim();
                 cover = rule.getDetailImgR(cover);
                 cover = Misc.fixUrl(webUrl, cover);
@@ -350,6 +366,10 @@ public class XPath extends Spider {
         return "";
     }
 
+    public interface VerifyCallBack {
+        void onVerify(String url);
+    }
+
     @Override
     public String searchContent(String key, boolean quick) {
         try {
@@ -359,67 +379,101 @@ public class XPath extends Spider {
             }
             String webUrl = rule.getSearchUrl().replace("{wd}", URLEncoder.encode(key));
             String webContent = fetch(webUrl);
-            JSONObject result = new JSONObject();
-            JSONArray videos = new JSONArray();
-            // add maccms suggest search api support
-            if (rule.getSearchVodNode().startsWith("json:")) {
-                String[] node = rule.getSearchVodNode().substring(5).split(">");
-                JSONObject data = new JSONObject(webContent);
-                for (int i = 0; i < node.length; i++) {
-                    if (i == node.length - 1) {
-                        JSONArray vodArray = data.getJSONArray(node[i]);
-                        for (int j = 0; j < vodArray.length(); j++) {
-                            JSONObject vod = vodArray.getJSONObject(j);
-                            String name = vod.optString(rule.getSearchVodName()).trim();
-                            name = rule.getSearchVodNameR(name);
-                            String id = vod.optString(rule.getSearchVodId()).trim();
-                            id = rule.getSearchVodIdR(id);
-                            String pic = vod.optString(rule.getSearchVodImg()).trim();
-                            pic = rule.getSearchVodImgR(pic);
-                            pic = Misc.fixUrl(webUrl, pic);
-                            String mark = vod.optString(rule.getSearchVodMark()).trim();
-                            mark = rule.getSearchVodMarkR(mark);
-                            JSONObject v = new JSONObject();
-                            v.put("vod_id", id);
-                            v.put("vod_name", name);
-                            v.put("vod_pic", pic);
-                            v.put("vod_remarks", mark);
-                            videos.put(v);
-                        }
-                    } else {
-                        data = data.getJSONObject(node[i]);
-                    }
-                }
-            } else {
-                JXDocument doc = JXDocument.create(webContent);
-                List<JXNode> vodNodes = doc.selN(rule.getSearchVodNode());
-                for (int i = 0; i < vodNodes.size(); i++) {
-                    String name = vodNodes.get(i).selOne(rule.getSearchVodName()).asString().trim();
-                    name = rule.getSearchVodNameR(name);
-                    String id = vodNodes.get(i).selOne(rule.getSearchVodId()).asString().trim();
-                    id = rule.getSearchVodIdR(id);
-                    String pic = vodNodes.get(i).selOne(rule.getSearchVodImg()).asString().trim();
-                    pic = rule.getSearchVodImgR(pic);
-                    pic = Misc.fixUrl(webUrl, pic);
-                    String mark = "";
-                    if (!rule.getCateVodMark().isEmpty()) {
+            Activity activity = Init.getActivity();
+            if (webContent.contains("系统安全验证")) {
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
                         try {
-                            mark = vodNodes.get(i).selOne(rule.getSearchVodMark()).asString().trim();
-                            mark = rule.getSearchVodMarkR(mark);
+                            MyDialog myDialog = new MyDialog(activity);
+                            myDialog.setContentView(R.layout.text_layout);
+                            myDialog.show();
+                            WebView myWebView = myDialog.findViewById(R.id.myWebview);
+                            myWebView.setWebViewClient(new SysWebClient(new VerifyCallBack() {
+                                @Override
+                                public void onVerify(String url) {
+                                    String webUrl = rule.getSearchUrl().replace("{wd}", URLEncoder.encode(key));
+//                                    Log.i("dddddd", "webUrl = " + webUrl + "  url=" + url);
+                                    if (url.contains("wd")) {
+                                        String webContent = fetch(url);
+                                        if (!webContent.contains("系统安全验证")) {
+                                            Log.i("dddddd", "webContent = " + webContent);
+                                        }
+                                    }
+                                }
+                            }));
+                            myWebView.getSettings().setJavaScriptEnabled(true); // 如果需要支持JavaScript，启用这行代码
+                            Log.i("dddddd", "webUrl=" + webUrl);
+                            myWebView.loadUrl(webUrl);
                         } catch (Exception e) {
-                            SpiderDebug.log(e);
                         }
                     }
-                    JSONObject v = new JSONObject();
-                    v.put("vod_id", id);
-                    v.put("vod_name", name);
-                    v.put("vod_pic", pic);
-                    v.put("vod_remarks", mark);
-                    videos.put(v);
+                });
+
+            } else {
+                JSONObject result = new JSONObject();
+                JSONArray videos = new JSONArray();
+                // add maccms suggest search api support
+                if (rule.getSearchVodNode().startsWith("json:")) {
+                    String[] node = rule.getSearchVodNode().substring(5).split(">");
+                    JSONObject data = new JSONObject(webContent);
+                    for (int i = 0; i < node.length; i++) {
+                        if (i == node.length - 1) {
+                            JSONArray vodArray = data.getJSONArray(node[i]);
+                            for (int j = 0; j < vodArray.length(); j++) {
+                                JSONObject vod = vodArray.getJSONObject(j);
+                                String name = vod.optString(rule.getSearchVodName()).trim();
+                                name = rule.getSearchVodNameR(name);
+                                String id = vod.optString(rule.getSearchVodId()).trim();
+                                id = rule.getSearchVodIdR(id);
+                                String pic = vod.optString(rule.getSearchVodImg()).trim();
+                                pic = rule.getSearchVodImgR(pic);
+                                pic = Misc.fixUrl(webUrl, pic);
+                                String mark = vod.optString(rule.getSearchVodMark()).trim();
+                                mark = rule.getSearchVodMarkR(mark);
+                                JSONObject v = new JSONObject();
+                                v.put("vod_id", id);
+                                v.put("vod_name", name);
+                                v.put("vod_pic", pic);
+                                v.put("vod_remarks", mark);
+                                videos.put(v);
+                            }
+                        } else {
+                            data = data.getJSONObject(node[i]);
+                        }
+                    }
+                } else {
+                    JXDocument doc = JXDocument.create(webContent);
+                    List<JXNode> vodNodes = doc.selN(rule.getSearchVodNode());
+                    for (int i = 0; i < vodNodes.size(); i++) {
+                        String name = vodNodes.get(i).selOne(rule.getSearchVodName()).asString().trim();
+                        name = rule.getSearchVodNameR(name);
+                        String id = vodNodes.get(i).selOne(rule.getSearchVodId()).asString().trim();
+                        id = rule.getSearchVodIdR(id);
+                        String pic = vodNodes.get(i).selOne(rule.getSearchVodImg()).asString().trim();
+                        pic = rule.getSearchVodImgR(pic);
+                        pic = Misc.fixUrl(webUrl, pic);
+                        String mark = "";
+                        if (!rule.getCateVodMark().isEmpty()) {
+                            try {
+                                mark = vodNodes.get(i).selOne(rule.getSearchVodMark()).asString().trim();
+                                mark = rule.getSearchVodMarkR(mark);
+                            } catch (Exception e) {
+                                SpiderDebug.log(e);
+                            }
+                        }
+                        JSONObject v = new JSONObject();
+                        v.put("vod_id", id);
+                        v.put("vod_name", name);
+                        v.put("vod_pic", pic);
+                        v.put("vod_remarks", mark);
+                        videos.put(v);
+                    }
                 }
+                result.put("list", videos);
+                return result.toString();
             }
-            result.put("list", videos);
-            return result.toString();
+
         } catch (
                 Exception e) {
             SpiderDebug.log(e);
@@ -474,4 +528,65 @@ public class XPath extends Spider {
         SpiderDebug.log(webUrl);
         return OkHttpUtil.string(webUrl, getHeaders(webUrl));
     }
+
+    private class SysWebClient extends WebViewClient {
+        private VerifyCallBack verifyCallBack;
+
+        public SysWebClient(VerifyCallBack verifyCallBack) {
+            this.verifyCallBack = verifyCallBack;
+        }
+
+        @Override
+        public void onPageStarted(WebView view, String url, Bitmap favicon) {
+            super.onPageStarted(view, url, favicon);
+        }
+
+        @Override
+        public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
+            super.onReceivedHttpError(view, request, errorResponse);
+        }
+
+        @Override
+        public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+            super.onReceivedError(view, request, error);
+        }
+
+        @Override
+        public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
+            super.onReceivedSslError(view, handler, error);
+        }
+
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+            return false;
+        }
+
+        @Nullable
+        @Override
+        public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+            if (verifyCallBack != null) {
+                verifyCallBack.onVerify(url);
+            }
+            return super.shouldInterceptRequest(view, url);
+        }
+
+        @Nullable
+        @Override
+        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+        public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+            String url = "";
+            try {
+                url = request.getUrl().toString();
+            } catch (Throwable th) {
+
+            }
+            return super.shouldInterceptRequest(view, request);
+        }
+
+        @Override
+        public void onLoadResource(WebView webView, String url) {
+            super.onLoadResource(webView, url);
+        }
+    }
+
 }

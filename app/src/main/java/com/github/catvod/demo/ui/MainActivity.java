@@ -15,6 +15,7 @@ import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.github.catvod.demo.R;
 import com.github.catvod.demo.adapter.HomeGameListAdapter;
 import com.github.catvod.demo.adapter.HomeTabAdapter;
+import com.github.catvod.demo.bean.SearchBean;
 import com.github.catvod.demo.bean.SortFilter;
 import com.github.catvod.demo.bean.XshijueHomeListBean;
 import com.github.catvod.demo.utlis.JsonUtils;
@@ -59,7 +60,7 @@ public class MainActivity extends BaseActivity {
                 public void run() {
                     XPathFilter xPathFilter = new XPathFilter();
                     XpathInstance.getInstance().setxpath(xPathFilter);
-                    String assetsJson = JsonUtils.getAssetsJson(MainActivity.this, "haitu.json");
+                    String assetsJson = JsonUtils.getAssetsJson(MainActivity.this, "feitu.json");
                     XpathInstance.getInstance().init(mContext, assetsJson);
                     String homeContent = XpathInstance.getInstance().homeContent(true);
 
@@ -168,12 +169,29 @@ public class MainActivity extends BaseActivity {
                     Toast.makeText(mContext, "请输入名称后搜索", Toast.LENGTH_SHORT).show();
                     return;
                 }
+
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
                         String searchContent = XpathInstance.getInstance().searchContent(inPutName, false);
-                        if (TextUtils.isEmpty(searchContent)) {
-                            Toast.makeText(mContext,"搜索结果为空",Toast.LENGTH_SHORT).show();
+                        SearchBean searchBean = new Gson().fromJson(searchContent, SearchBean.class);
+                        if (searchBean==null) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(mContext, "搜索结果为空", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                            return;
+                        }
+                        List<SearchBean.ListBean> list = searchBean.getList();
+                        if (TextUtils.isEmpty(searchContent) || list.isEmpty()) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(mContext, "搜索结果为空", Toast.LENGTH_SHORT).show();
+                                }
+                            });
                             return;
                         }
                         Intent intent = new Intent(mContext, SearchResultActivity.class);
