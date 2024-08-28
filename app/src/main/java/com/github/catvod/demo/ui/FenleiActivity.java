@@ -62,6 +62,7 @@ public class FenleiActivity extends BaseActivity {
             @Override
             public void run() {
                 String categoryContent = XpathInstance.getInstance().categoryContent(typeId, true, filterSelect);
+                Log.i("dddddd", "categoryContent = " + categoryContent);
                 setNewData(categoryContent);
             }
         }).start();

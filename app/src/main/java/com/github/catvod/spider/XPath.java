@@ -66,6 +66,7 @@ public class XPath extends Spider {
             }
             try {
                 String webUrl = rule.getHomeUrl();
+                Log.i("dddddd", "homeContent webUrl=" + webUrl);
                 JXDocument doc = JXDocument.create(fetch(webUrl));
                 if (rule.getCateManual().size() == 0) {
                     List<JXNode> navNodes = doc.selN(rule.getCateNode());
@@ -155,6 +156,7 @@ public class XPath extends Spider {
         try {
             fetchRule();
             String webUrl = categoryUrl(tid, pg, filter, extend);
+            Log.i("dddddd", "categoryContent webUrl=" + webUrl);
             JSONArray videos = new JSONArray();
             JXDocument doc = JXDocument.create(fetch(webUrl));
             List<JXNode> vodNodes = doc.selN(rule.getCateVodNode());

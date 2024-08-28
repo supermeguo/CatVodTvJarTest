@@ -51,7 +51,7 @@
   "homeVodImgR": "\\S+(http\\S+).webp",
   "homeVodMark": "//div[contains(@class,'hl-item-sub')]/span/text()",
   "cateUrl": "https://www.feitu.tv/category/{cateId}/area/{area}/year/{year}/page/{catePg}",
-  "cateVodNode": "//div[@class='hl-list-wrap hl-wide-wrap']//li/a",
+  "cateVodNode": "//div[@class='hl-list-wrap hl-wide-wrap']/ul[@class='hl-vod-list hl-wide-list clearfix']/li/a",
   "cateVodName": "/@title",
   "cateVodId": "/@href",
   "cateVodIdR": "/detail/(\\w+)/",
@@ -95,6 +95,6 @@
   "scVodId": "/a/@href",
   "scVodIdR": "/detail/(\\w+)/",
   "scVodImg": "/a/@data-original",
-  "scVodMark": "//p[@class='hl-item-sub hl-lc-1']/span/text()"
+  "scVodMark": "//div[@class='hl-item-pic']//div[@class='hl-pic-text']/span/text()"
 }
 
