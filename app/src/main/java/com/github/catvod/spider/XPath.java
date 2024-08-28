@@ -206,6 +206,7 @@ public class XPath extends Spider {
         try {
             fetchRule();
             String webUrl = rule.getDetailUrl().replace("{vid}", ids.get(0));
+            Log.i("dddddd", "detailContent webUrl= " + webUrl);
             String webContent = fetch(webUrl);
             JXDocument doc = JXDocument.create(webContent);
             JXNode vodNode = doc.selNOne(rule.getDetailNode());
